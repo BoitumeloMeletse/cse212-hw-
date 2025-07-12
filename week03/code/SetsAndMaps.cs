@@ -21,8 +21,24 @@ public static class SetsAndMaps
     /// <param name="words">An array of 2-character words (lowercase, no duplicates)</param>
     public static string[] FindPairs(string[] words)
     {
-        // TODO Problem 1 - ADD YOUR CODE HERE
-        return [];
+        var wordSet = new HashSet<string>(words);
+        var seen = new HashSet<string>();
+        var result = new List<string>();
+
+        foreach (var word in words)
+        {
+            if (word[0] == word[1]) continue; // skip same-letter words like "aa"
+
+            var reverse = $"{word[1]}{word[0]}";
+
+            if (wordSet.Contains(reverse) && !seen.Contains(reverse))
+            {
+                result.Add($"{word} & {reverse}");
+                seen.Add(word);
+            }
+        }
+
+        return result.ToArray();
     }
 
     /// <summary>
@@ -42,7 +58,12 @@ public static class SetsAndMaps
         foreach (var line in File.ReadLines(filename))
         {
             var fields = line.Split(",");
-            // TODO Problem 2 - ADD YOUR CODE HERE
+            if (fields.Length < 4) continue;
+            string degree = fields[3].Trim();
+            if (degrees.ContainsKey(degree))
+                degrees[degree]++;
+            else
+                degrees[degree] = 1;
         }
 
         return degrees;
@@ -64,10 +85,32 @@ public static class SetsAndMaps
     /// Reminder: You can access a letter by index in a string by 
     /// using the [] notation.
     /// </summary>
-    public static bool IsAnagram(string word1, string word2)
+        public static bool IsAnagram(string word1, string word2)
     {
-        // TODO Problem 3 - ADD YOUR CODE HERE
-        return false;
+        string Normalize(string s) =>
+            new string(s.ToLower().Where(char.IsLetterOrDigit).ToArray());
+
+            word1 = Normalize(word1);
+            word2 = Normalize(word2);
+
+        if (word1.Length != word2.Length) return false;
+
+        var dict = new Dictionary<char, int>();
+
+        foreach (char c in word1)
+        {
+            if (!dict.ContainsKey(c)) dict[c] = 0;
+            dict[c]++;
+        }
+
+        foreach (char c in word2)
+        {
+            if (!dict.ContainsKey(c)) return false;
+            dict[c]--;
+            if (dict[c] < 0) return false;
+        }
+
+        return dict.Values.All(v => v == 0);
     }
 
     /// <summary>
@@ -101,6 +144,13 @@ public static class SetsAndMaps
         // on those classes so that the call to Deserialize above works properly.
         // 2. Add code below to create a string out each place a earthquake has happened today and its magitude.
         // 3. Return an array of these string descriptions.
-        return [];
+         if (featureCollection?.Features == null)
+          return Array.Empty<string>();
+
+
+        return featureCollection.Features
+        .Where(f => f.Properties != null && f.Properties.Place != null && f.Properties.Mag != null)
+        .Select(f => $"{f.Properties.Place} - Mag {f.Properties.Mag.Value}")
+        .ToArray();;
     }
 }
