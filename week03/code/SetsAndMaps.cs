@@ -21,20 +21,24 @@ public static class SetsAndMaps
     /// <param name="words">An array of 2-character words (lowercase, no duplicates)</param>
     public static string[] FindPairs(string[] words)
     {
-        var wordSet = new HashSet<string>(words);
-        var seen = new HashSet<string>();
+        if (words == null || words.Length == 0)
+            return Array.Empty<string>();
+
+        // Use a set to ensure unique words
+        var uniq = new HashSet<string>(words, StringComparer.Ordinal);
         var result = new List<string>();
 
-        foreach (var word in words)
+        foreach (var word in uniq)
         {
+            if (word.Length != 2) continue;
             if (word[0] == word[1]) continue; // skip same-letter words like "aa"
 
-            var reverse = $"{word[1]}{word[0]}";
+            var reverse = new string(new[] { word[1], word[0] });
 
-            if (wordSet.Contains(reverse) && !seen.Contains(reverse))
+            // Only add the pair once by ensuring lexicographic order
+            if (uniq.Contains(reverse) && string.CompareOrdinal(word, reverse) < 0)
             {
                 result.Add($"{word} & {reverse}");
-                seen.Add(word);
             }
         }
 
@@ -51,7 +55,7 @@ public static class SetsAndMaps
     /// file.
     /// </summary>
     /// <param name="filename">The name of the file to read</param>
-    /// <returns>fixed array of divisors</returns>
+    /// <returns>Dictionary with degree counts</returns>
     public static Dictionary<string, int> SummarizeDegrees(string filename)
     {
         var degrees = new Dictionary<string, int>();
@@ -85,13 +89,13 @@ public static class SetsAndMaps
     /// Reminder: You can access a letter by index in a string by 
     /// using the [] notation.
     /// </summary>
-        public static bool IsAnagram(string word1, string word2)
+    public static bool IsAnagram(string word1, string word2)
     {
         string Normalize(string s) =>
             new string(s.ToLower().Where(char.IsLetterOrDigit).ToArray());
 
-            word1 = Normalize(word1);
-            word2 = Normalize(word2);
+        word1 = Normalize(word1);
+        word2 = Normalize(word2);
 
         if (word1.Length != word2.Length) return false;
 
@@ -139,18 +143,12 @@ public static class SetsAndMaps
 
         var featureCollection = JsonSerializer.Deserialize<FeatureCollection>(json, options);
 
-        // TODO Problem 5:
-        // 1. Add code in FeatureCollection.cs to describe the JSON using classes and properties 
-        // on those classes so that the call to Deserialize above works properly.
-        // 2. Add code below to create a string out each place a earthquake has happened today and its magitude.
-        // 3. Return an array of these string descriptions.
-         if (featureCollection?.Features == null)
-          return Array.Empty<string>();
-
+        if (featureCollection?.Features == null)
+            return Array.Empty<string>();
 
         return featureCollection.Features
-        .Where(f => f.Properties != null && f.Properties.Place != null && f.Properties.Mag != null)
-        .Select(f => $"{f.Properties.Place} - Mag {f.Properties.Mag.Value}")
-        .ToArray();;
+            .Where(f => f.Properties != null && f.Properties.Place != null && f.Properties.Mag != null)
+            .Select(f => $"{f.Properties.Place} - Mag {f.Properties.Mag.Value}")
+            .ToArray();
     }
 }
